@@ -20,18 +20,24 @@ jobs:
       with:
         java-version: '17'
         distribution: 'temurin'
-        cache: 'gradle'
     
-    - name: Setup Gradle Wrapper
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v3
+      with:
+        gradle-version: '8.4'
+        
+    - name: Create gradlew if not exists
       run: |
-        gradle wrapper
+        if [ ! -f "gradlew" ]; then
+          gradle wrapper --gradle-version 8.4
+        fi
         chmod +x gradlew
         
     - name: Build Debug APK
-      run: ./gradlew assembleDebug --stacktrace
+      run: ./gradlew assembleDebug --stacktrace --no-daemon
       
-    - name: Build Release APK
-      run: ./gradlew assembleRelease --stacktrace
+    - name: Build Release APK  
+      run: ./gradlew assembleRelease --stacktrace --no-daemon
       
     - name: Upload Debug APK
       uses: actions/upload-artifact@v4
@@ -39,6 +45,7 @@ jobs:
         name: PegasusVoid-debug
         path: app/build/outputs/apk/debug/*.apk
         retention-days: 30
+        if-no-files-found: error
         
     - name: Upload Release APK
       uses: actions/upload-artifact@v4
@@ -46,3 +53,4 @@ jobs:
         name: PegasusVoid-release
         path: app/build/outputs/apk/release/*.apk
         retention-days: 30
+        if-no-files-found: warn
